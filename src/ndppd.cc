@@ -354,18 +354,22 @@ int main(int argc, char* argv[], char* env[])
     if (daemon) {
         logger::syslog(true);
 
-        if (daemonize() < 0)
+        if (daemonize() < 0) {
+            logger::error() << "Failed to daemonize process";
             return 1;
+	}
     }
 
     if (!configure(cf))
         return -1;
 
     if (!pidfile.empty()) {
+        mode_t old_umask = umask(022);
         std::ofstream pf;
         pf.open(pidfile.c_str(), std::ios::out | std::ios::trunc);
         pf << getpid() << std::endl;
         pf.close();
+        umask(old_umask);
     }
 
     // Time stuff.
